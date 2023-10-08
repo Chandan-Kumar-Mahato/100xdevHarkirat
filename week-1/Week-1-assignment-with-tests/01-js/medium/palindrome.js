@@ -7,7 +7,15 @@
 */
 
 function isPalindrome(str) {
+  str = str.toLowerCase();
+  str = str.replace(/[^a-zA-Z0-9]/g, '');
+  var check;
+  check = str.split('').reverse().join('');
+  console.log(check);
+  if(check==str)
   return true;
+  else return false;
 }
+console.log(isPalindrome("open5ai"));
 
 module.exports = isPalindrome;

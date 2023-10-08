@@ -7,6 +7,16 @@ Try running it for
 Hint - use Date class exposed in JS
 */
 
+// this program is telling me to calculatet the time taken in second to sum to number from 1 to n in sec
 function calculateTime(n) {
-    return 0.01;
+    const date = new Date().getTime();
+    var sum = 0;
+    for(let i = 1;i<=n;i++)
+    {
+        sum +=i;
+    }
+    const calcDate = new Date().getTime();
+    return calcDate-date;
+    
 }
+console.log(calculateTime(10000000000));
