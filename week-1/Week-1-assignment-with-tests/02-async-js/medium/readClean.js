@@ -1,32 +1,42 @@
 //  well this program reads data from a file and remove the extra space if present
 // const fs = require("fs");
 
-// const data = "hello this is new data and i love Nepal."
-// function read(err,data)
-// {
-//     if(err)
-//     {
-//         console.log("Error encounters");
-//     }
-//     else 
-//     {
-        
-//         console.log(data);
-//     }
-// }
-// fs.readFile("intro.txt","utf-8",read);
-
 const fs = require("fs");
 
-const data = "Hello this is new file that ia m glaalkfja is being updated";
-function writeToFile(err)
+function cleanIt(data)
+{
+  return data.replace(/\s+/g," ");
+}
+
+// this will write the content of the file in new way
+function writeInsideFile(err)
 {
   if(err)
   {
-    console.log("You encounter error");
-    
+    console.log("You have encounter one error");
   }
-  else console.log("file is updated");
-  
+  else
+  {
+    console.log("File is updated");
+  }
 }
-fs.writeFile('intro.txt', data , 'utf-8',writeToFile);
+
+// this is being called
+function readFromFile(err,data)
+{
+  if(err)
+  {
+    console.log("Error Encounters");
+  }
+  else
+  {
+    var cleanData = cleanIt(data);
+    fs.writeFile("intro.txt",cleanData , "utf-8",writeInsideFile);
+  }
+}
+
+
+//  this will read from a file and make any update in the file
+fs.readFile("intro.txt","utf-8",readFromFile);
+
+
