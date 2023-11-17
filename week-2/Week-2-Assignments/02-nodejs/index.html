@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO app</title>
+    <script>
+        var ToDoData ;
+        // console.log(ToDoData);
+        function deleteData(id)
+    {
+        console.log(id);
+    }
+
+function getDataFromTodo(){
+    fetch("http://localhost:3000/todos",{method:"GET"})
+    .then((res)=>{
+        return res.json()
+    })
+    .then((data)=>{
+        ToDoData = data;
+        var container = document.querySelector(".container");
+        var table = document.createElement("table");
+        container.appendChild(table);
+        var thead = document.createElement("thead");
+        table.appendChild(thead);
+        var ToDoDataKeys = Object.keys(ToDoData[0]);
+        // this is to show the data table heading
+        ToDoDataKeys.forEach((val)=>{
+            var th = document.createElement("th");
+            th.innerText = val;
+            thead.appendChild(th);
+        })
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+    //    this is to append the data inside the table row
+   
+    ToDoData.forEach((val,ind)=>{
+        var tr = document.createElement("tr");
+        tbody.appendChild(tr);
+        for(let da in val )
+        {
+            var td = document.createElement("td");
+            td.innerText = val[da];
+            tr.appendChild(td);
+        }
+        const btn = document.createElement("button");
+        btn.innerHTML = "Delete";
+        btn.setAttribute("onclick",`deleteData(${val.id})`);
+        tr.appendChild(btn);
+    })
+        
+    })
+}
+getDataFromTodo();
+        function onPress(){
+            // this is fetch api calling 
+           fetch("http://localhost:3000/todos", {
+            method:"GET"})
+            // its return me a promise 
+           .then((res)=>{return res.json()})
+           .then((val)=>{
+            console.log(val);
+           })
+        }
+        function onPress2(){
+            
+            // this function will post the data to my file
+           const title = document.getElementById("title").value;
+           const description = document.getElementById("Descp").value;
+           const status = document.getElementById("status").value;
+            console.log(title, description, status);
+           fetch("http://localhost:3000/todos", {
+            method:"POST" , 
+            body: JSON.stringify({
+                title: title,
+                completed: description ,
+                description: status
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+            
+        }
+    </script>
+</head>
+<body>
+    TODO-title <input type="text" id="title" placeholder="Enter your task name">
+    <br>
+    TODO-Descp  <input type="text" id="Descp" placeholder="Enter Descp">
+    <br>
+    TODO-Status <input type="text" id = "status" placeholder="Enter True or false">
+    <br>
+    <button onclick="onPress2()">Send Todo</button>
+
+    <!-- lets print the data in the table -->
+    <div class="container">
+    </div>
+    
+</body>
+</html> 
