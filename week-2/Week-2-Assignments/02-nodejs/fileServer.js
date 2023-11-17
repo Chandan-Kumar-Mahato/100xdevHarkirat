@@ -20,6 +20,43 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
+app.get('/filesdata',(req,res)=>{
+  const fileName =path.join(__dirname ,'./files/',req.query.file);
+  console.log(fileName);
+  fs.readFile(fileName,"utf-8",(err,data)=>{
+    if(err)
+    {
+      res.send(`Error found`);
+    }
+    else
+    {
+      res.send(data);
+    }
+  })
+  // res.send(`hello this will have file data`);
+})
+app.get('/files', (req,res)=>{
+  const filePath = path.join(__dirname,'./files/')
+  //  this returns the present files  in the form of array
+  fs.readdir(filePath,(err,filesColl)=>{
+    if(err)
+    {
+      console.log(err);
+    }
+    else
+    {
+      // var ans = filesColl.filter((filesColl)=>{
+      //   return filesColl;
+      // })
+      res.json(filesColl);
+    }
+  });
+})
 
+// this will simply show me the message that port is listening
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 module.exports = app;
