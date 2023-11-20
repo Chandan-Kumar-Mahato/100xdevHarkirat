@@ -39,11 +39,150 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+  // this my todos is missing one functionality that is : you just have to find update the particular section
+  // if a user want to update that ones.
 const express = require('express');
+const fs = require('fs');
 const bodyParser = require('body-parser');
-
+const port = 3000
 const app = express();
-
+const path = require('path');
+const cors = require('cors');
 app.use(bodyParser.json());
+// this cors allow to hit my server from any address or html page 
+app.use(cors());
+
+
+// let taskStor = [];
+
+function findArrayIndex(Id,myArr)
+{
+  // console.log(Id);
+  var task;
+  var flag = 0;
+  myArr.forEach((val)=>{
+    if(val.id==Id)
+    {
+      flag = 1;
+      task = val;
+    }
+  })
+  if(flag == 0) return -1;
+  else
+  return task;
+}
+// this is simply to print all the task in the tasklist
+app.get('/todos', (req, res) => {
+  // res.send(taskStor);
+  fs.readFile("02-nodejs/todos.json","utf-8",(err,data)=>{
+    if(err)
+    {
+      res.send('you are not able to read the file text in json');
+    }
+    else
+    {
+      const ans =  JSON.parse(data);
+      res.send(ans);
+    }
+  })
+})
+
+// this is to push the task or submitted in the body
+app.post('/todos',(req,res)=>{
+  var obj = req.body;
+  obj.id = Math.floor(Math.random()*100);
+  console.log(obj);
+  fs.readFile("02-nodejs/todos.json","utf-8",(err,data)=>{
+    var jsData = JSON.parse(data);
+    if(err) {res.status(404)}
+    jsData.push(obj);
+    var todo = JSON.stringify(jsData);
+    fs.writeFile("02-nodejs/todos.json",todo,"utf-8",(err,data)=>{
+      if(err) console.log("here is error")
+      else res.send(data);
+    })
+  })
+})
+ 
+// lets delete the particular todo's item
+app.delete('/todos/:id',(req,res)=>{
+  const id = req.params.id;
+  console.log(id);
+  fs.readFile("02-nodejs/todos.json","utf-8",(err,data)=>{
+    var taskStor = JSON.parse(data);
+    const ind = findArrayIndex(id,taskStor);
+  if(ind!=-1)
+  {
+    taskStor.splice(ind,1);
+  }
+  else
+  {
+    res.sendStatus(404);
+  }
+  taskStor = JSON.stringify(taskStor);
+  fs.writeFile("02-nodejs/todos.json",taskStor, (err,data)=>{
+    if(err)
+    {
+     throw err;
+    }
+    res.status(200).send();
+  })
+})
+res.send("ok");
+})
+// this function is to retrive the specific todos  from the collections of todos
+app.get('/todos/:id',(req,res)=>{
+  const value = req.params.id;
+  fs.readFile("02-nodejs/todos.json","utf-8",(err,data)=>{
+    var checkData = JSON.parse(data);
+    var finalTask =   findArrayIndex(value,checkData);
+    if(finalTask==-1)
+    {
+      res.send('id not found');
+    }
+    else 
+    res.send(finalTask);
+  })
+})
+function findIndex(id,myarr)
+{
+  return myarr.findIndex((val)=>val.id==id);
+}
+// this one is for updating particular todos  by the user who wants to update the existing todos
+app.put('/todos/:id',(req,res)=>{
+ fs.readFile("02-nodejs/todos.json","utf-8",(err,data)=>{
+  // convert the json file to object
+  var myTodos = JSON.parse(data);
+  // console.log(myTodos);
+  var jsonIndex = findIndex(req.params.id,myTodos);
+  // console.log(jsonIndex);
+  const newObj = {
+  id: myTodos[jsonIndex].id,
+  title:req.body.title,
+  description:req.body.description,
+  completed:req.body.completed
+  }
+  myTodos[jsonIndex] = newObj;
+  console.log(myTodos);
+  fs.writeFile("02-nodejs/todos.json",JSON.stringify(myTodos),(err,data)=>{
+      if(err) throw err;
+      else res.send(myTodos[jsonIndex]);
+  })
+  // res.send("you are going right");
+ })
+})
+
+
+/* This is for when you loads html page with express server */
+// app.get("/",(req,res)=>{
+//   res.sendFile(path.join(__dirname,"index.html"));
+// })
+
+
+//  this is simple loading page where you will sef the port starting message
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 module.exports = app;
