@@ -8,8 +8,17 @@
         var ToDoData ;
         // console.log(ToDoData);
         function deleteData(id)
-    {
+        {
         console.log(id);
+        var chem = "http://localhost:3000/todos/"+id;
+        console.log(chem);
+         fetch("http://localhost:3000/todos/"+id, {
+            method:"DELETE"
+          
+        })
+        .then((res)=>{
+            console.log("Task deleted successfully");
+        })
     }
 
 function getDataFromTodo(){
