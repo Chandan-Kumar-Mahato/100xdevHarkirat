@@ -26,11 +26,13 @@
    Input: Headers: { 'username': 'admin', 'password': 'pass' }
    Input: Body: { title: 'course title', description: 'course description', price: 100, imageLink: 'https://linktoimage.com', published: true }
    Output: { message: 'Course created successfully', courseId: 1 }
+   
  - PUT /admin/courses/:courseId
    Description: Edits an existing course. courseId in the URL path should be replaced with the ID of the course to be edited.
    Input: Headers: { 'username': 'admin', 'password': 'pass' }
    Input: Body { title: 'updated course title', description: 'updated course description', price: 100, imageLink: 'https://updatedlinktoimage.com', published: false }
    Output: { message: 'Course updated successfully' }
+   
  - GET /admin/courses
    Description: Returns all the courses.
    Input: Headers: { 'username': 'admin', 'password': 'pass' }
