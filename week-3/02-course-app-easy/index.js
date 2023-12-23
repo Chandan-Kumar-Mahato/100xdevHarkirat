@@ -33,7 +33,9 @@ app.post('/admin/signup', (req, res) => {
 const adminAuthentication=(req,res,next)=>{
   const userName = req.headers.username;
   const userPassword = req.headers.password;
-  const userInd = ADMINS.findIndex((val)=>(userName ==val.username && userPassword === val.password));
+
+
+  const userInd = ADMINS.findIndex((val)=>(userName ===val.username && userPassword == val.password));
   if(userInd==-1)
   {
     res.status(404).send(`Admin Not Found`);
@@ -43,12 +45,17 @@ const adminAuthentication=(req,res,next)=>{
     next();
   }
 }
+app.get('/admin/list',(req,res)=>{
+  res.json(ADMINS);
+})
 
 
 app.post('/admin/login', adminAuthentication ,(req, res) => {
   // logic to log in admin
     res.send(`Logged in successfully`);
 });
+
+
 
 app.post('/admin/courses', adminAuthentication,  (req, res) => {
   // logic to create a course
@@ -77,7 +84,7 @@ app.put('/admin/courses/:courseId', (req, res) => {
   }
   else
   {
-   Object.assign(COURSES[findId],req.body);  //-->this Object.assign does change only that is different than others
+   Object.assign(COURSES[findId],req.body);  //-->this Object.assign does change only where the value is changed
     res.json(`${COURSES[findId]}`);
   }
 });
@@ -141,21 +148,17 @@ app.post('/users/courses/:courseId', userAuthentication, (req, res) => {
   // logic to purchase a course
   const requireId = req.params.courseId;
   console.log(requireId);
- const purchase  =  COURSES.find((val)=>val.courseId == requireId);
- console.log(req.user);
-//  console.log(purchase);
-//  console.log(`I am in purchase place ${req.user} indexuser`);
+ const purchase  =  COURSES.find((val)=>val.courseId == requireId);  // here find returns the value not the index
 var obj = req.user;
- obj[purchase].push(purchase);
-
+obj["purchaseCourse"].push(purchase);
  res.send(`Course purchased with courseId ${requireId}`);
 
 });
 
 app.get('/users/purchasedCourses',userAuthentication,  (req, res) => {
   // logic to view purchased courses
-  var purchaseCourse = req.user.publishedCourse;
-  req.json(purchaseCourse);
+  var purchaseCourse = req.user;
+  res.json(purchaseCourse["purchaseCourse"]);
 });
 
 app.listen(3000, () => {
