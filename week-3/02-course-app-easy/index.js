@@ -30,6 +30,8 @@ app.post('/admin/signup', (req, res) => {
 });
 
 
+// this is admin Authentication
+
 const adminAuthentication=(req,res,next)=>{
   const userName = req.headers.username;
   const userPassword = req.headers.password;
@@ -42,14 +44,17 @@ const adminAuthentication=(req,res,next)=>{
   }
   else 
   {
-    next();
+       next();
   }
 }
+
+// This is for showing the list of admin
 app.get('/admin/list',(req,res)=>{
   res.json(ADMINS);
 })
 
 
+// this is the login of the particular admin
 app.post('/admin/login', adminAuthentication ,(req, res) => {
   // logic to log in admin
     res.send(`Logged in successfully`);
