@@ -36,12 +36,15 @@ mongoose.connect('mongodb+srv://chandu:9807774772@temprorary.scortpu.mongodb.net
 app.post('/admin/signup', async(req, res) => {
   // logic to sign up admin
   const {username , password} = req.body;
+
+  // Admin.findOne is one of the asynchronous so , we use async and await
   const admin = await Admin.findOne({username});
   if(admin){
     res.status(403).json({message:"Admin already Exists"});
   }
   else 
   {
+    // if you got key and value named same you can use any of then only once
   const obj  = {username , password};
   const newAdmin = new Admin(obj);
   newAdmin.save();
@@ -53,10 +56,30 @@ app.post('/admin/signup', async(req, res) => {
 
 app.post('/admin/login', (req, res) => {
   // logic to log in admin
-});
+  const {username , password} = req.headers;
+  const admin = Admin.findOne({username , password});
+  if(admin)
+  {
+    const token = jwt.sign({username , password} , secret , {expiresIn:"1h"});
+    res.json({message:"Admin logged in successfully" , Token:token});
+  }
+  else 
+  res.status(403).json({message:"Invalid username or password"});
 
-app.post('/admin/courses', (req, res) => {
+});
+function authenticateJwt(req,res,next)
+{
+  var  auth = req.headers.authorization;
+   auth = auth.split(' ')[1];
+   console.log(auth);
+   jwt.verify(auth,secret,(err,data)=>{
+   console.log(data);
+   next();
+   })
+}
+app.post('/admin/courses', authenticateJwt ,  (req, res) => {
   // logic to create a course
+  res.send('Called Successfully');
 });
 
 app.put('/admin/courses/:courseId', (req, res) => {
