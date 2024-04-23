@@ -68,6 +68,7 @@ function Login() {
               console.log(resp.data);
               localStorage.setItem("token", resp.data.token);
               localStorage.setItem("userName", resp.data.userName);
+              // if i am not doing this this will not update the window and changes will not seen imideatly
               window.location.reload();
             })
             .catch((err) => {

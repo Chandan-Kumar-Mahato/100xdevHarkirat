@@ -2,53 +2,68 @@ const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
+
+const { connectDB } = require("./model/dbConn");
+const { Admin, User, Course } = require("./model/model");
+
+const ADMINS = [];
+const USERS = [];
+const COURSES = [];
+
+connectDB();
 app.use(cors());
 
 app.use(express.json());
 
-let ADMINS = [];
-let USERS = [];
-let COURSES = [];
-
 const secret = "super30sec";
+
 function generateToken(obj) {
   const jwtTok = jwt.sign(obj, secret);
   return jwtTok;
 }
+
 // Admin routes
 app.post("/admin/signup", (req, res) => {
   // logic to sign up admin
   const adminObj = req.body;
-  const dupInd = ADMINS.findIndex((val) => val.email === adminObj.email);
-  if (dupInd === -1) {
-    ADMINS.push(adminObj);
-    const mssg = generateToken(adminObj);
-    res
-      .status(200)
-      .json({ message: "Admin created successfully , token: " + mssg });
-  } else {
-    res.status(301).send({ message: "Admin already Present" });
-  }
+  Admin.findOne({ username: adminObj.username })
+    .then((admin) => {
+      if (admin) res.send(`admin already present`);
+      else {
+        Admin.create(adminObj)
+          .then((admin) => {
+            console.log(admin);
+            const mssg = generateToken(adminObj);
+            res
+              .status(200)
+              .json({ message: "Admin created successfully , token: " + mssg });
+          })
+          .catch((err) => {
+            res.send(`admin not created`);
+          });
+      }
+    })
+    .catch((err) => {
+      res.send(`admin not created`);
+    });
 });
 
 function adminAuthentication(req, res, next) {
-  const { email, password } = req.body;
-  const adminLoginObj = {
-    email,
-    password,
-  };
-  const ind = ADMINS.findIndex(
-    (val) => val.email == email && val.password == password
-  );
-  if (ind == -1) {
-    res.status(401).send("Unauthorized Admin");
-  } else {
-    const jwtTok = generateToken(adminLoginObj);
-    req.token = jwtTok;
-    req.userName = ADMINS[ind].email;
-    next();
-  }
+  const { username, password } = req.body;
+  const adminLoginObj = {username , password};
+  Admin.findOne({ username , password  })
+    .then((admin) => {
+      if (admin) {
+        const jwtTok = generateToken(adminLoginObj);
+        req.token = jwtTok;
+        next();
+      } else {
+        res.status(401).send("Unauthorized Admin");
+      }
+    })
+    .catch((err) => res.send(err));
 }
+
 function jwtAuthenticate(req, res, next) {
   const tok = req.headers.authorization;
   if (tok) {
@@ -69,6 +84,7 @@ function jwtAuthenticate(req, res, next) {
     res.status(401).send(`Admin auth Failed`);
   }
 }
+
 function jwtUserAuthenticate(req, res, next) {
   const tok = req.headers.authorization;
   if (tok) {
@@ -92,6 +108,7 @@ function jwtUserAuthenticate(req, res, next) {
     res.status(401).send(`User auth Failed`);
   }
 }
+
 app.post("/admin/login", adminAuthentication, (req, res) => {
   // logic to log in admin
   res.status(200).json({
@@ -123,7 +140,6 @@ app.get("/admin/list", (req, res) => {
   res.json(ADMINS);
 });
 
-// this is for editing the particular courseyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJmMXNvZnRDYXNiYSIsImF1ZCI6Ik1lcm9TaGFyZSIsImV4cCI6MTcxMTE5MDM4MCwianRpIjoiMDVtYUVsNUp1RGhkUG53M3VDdVRTQSIsImlhdCI6MTcxMTE4ODU4MCwibmJmIjoxNzExMTg4NDYwLCJzdWIiOiJjYXNiYSIsInVzZXJuYW1lIjoiMDM4MDk3MjIiLCJpZCI6NDU1MTY3NiwidG9rZW5DcmVhdGVkIjoiMjAyNC0wMy0yMyAxNTo1NDo0MCIsInByb2ZpbGVOYW1lIjoiTUVST19TSEFSRV9QUk9GSUxFIiwicHJvZmlsZUlkIjoxLCJyb2xlcyI6WyJQdXJjaGFzZSBTb3VyY2UiLCJBcHBsaWNhYmxlIElzc3VlIiwiQXBwbHkiLCJUcmFuc2ZlciBSZXF1ZXN0IFJlcG9ydCIsIkN1cnJlbnQgSXNzdWUiLCJQbGVkZ29yIiwiRWRpdCIsIlRyYW5zZmVyIFNoYXJlcyIsIkFwcGxpY2F0aW9uIFJlcG9ydCIsIk15IEhvbGRpbmdzIiwiUmVhcHBseSIsIk5vIERlbGl2ZXJ5IFRyYWRlcyIsIk9sZCBBcHBsaWNhdGlvbiBSZXBvcnQiLCJNeSBXQUNDIiwiT2xkIFRyYW5zZmVyIFJlcXVlc3QgUmVwb3J0IiwiTXkgRGV0YWlscyIsIk15IFNoYXJlcyIsIk15IFRyYW5zYWN0aW9uIEhpc3RvcnkiLCJNeSBQb3J0Zm9saW8iLCJNeSBQbGVkZ2UgU2hhcmUgRGV0YWlsIiwiTXkgQmFuayBSZXF1ZXN0IiwiTXkgQVNCQSIsIk15IFB1cmNoYXNlIFNvdXJjZSIsIk15IEVESVMiXSwiaXNUZW1wIjpmYWxzZSwiaXNBcHByb3ZhbFJlcXVpcmVkIjp0cnVlfQ.WWbhSsgO9uFzyuupJ_Lk50b2oUvFsvjoIsRcRWEGkokes
 app.put("/admin/courses/:courseId", jwtAuthenticate, (req, res) => {
   // logic to edit a course
   const courId = req.params.courseId;

@@ -29,7 +29,7 @@ function CourseDetail({ courseId , setCourse , course }) {
   }, []);
   return (
     <div className="w-1/2 flex flex-col items-center p-3 border">
-      <img src={`${course.imageLink}`} alt="This is the image" />
+      <img src={`${course.imageLink}`} alt="This is the course image" />
       <h1 className="text-xl font-bold">{course.title}</h1>
       <p className="text-md">Price:{course.price}</p>
       <p className="text-md">Tutor:{course.tutor} </p>
