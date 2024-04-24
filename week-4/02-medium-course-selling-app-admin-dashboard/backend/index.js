@@ -50,8 +50,8 @@ app.post("/admin/signup", (req, res) => {
 
 function adminAuthentication(req, res, next) {
   const { username, password } = req.body;
-  const adminLoginObj = {username , password};
-  Admin.findOne({ username , password  })
+  const adminLoginObj = { username, password };
+  Admin.findOne({ username, password })
     .then((admin) => {
       if (admin) {
         const jwtTok = generateToken(adminLoginObj);
@@ -72,17 +72,20 @@ function jwtAuthenticate(req, res, next) {
       if (err) {
         res.status(401).send(`Token Auth Failed`);
       } else {
-        const checkInd = ADMINS.findIndex(
-          (val) => val.email == mssg.email && val.password == mssg.password
-        );
-        if (checkInd != -1) {
-          next();
-        }
+        Admin.findOne({ username: mssg.username, password: mssg.password })
+          .then((admin) => {
+            if (admin) {
+              next();
+            } else {
+              res.status(401).send(`Admin auth Failed`);
+            }
+          })
+          .catch((err) => {
+            res.send("error occured in databse");
+          });
       }
     });
-  } else {
-    res.status(401).send(`Admin auth Failed`);
-  }
+  } else res.send("token auth failed");
 }
 
 function jwtUserAuthenticate(req, res, next) {
@@ -123,44 +126,64 @@ app.post("/admin/courses", jwtAuthenticate, (req, res) => {
   const randomId = Math.floor(Math.random() * 100);
   const courseObj = req.body;
   courseObj.id = randomId;
-  COURSES.push(courseObj);
-  res
-    .status(200)
-    .send({ message: `Course created successfully courseId: ${randomId}` });
+  Course.create(courseObj)
+    .then((course) => {
+      console.log(course);
+      res
+        .status(200)
+        .send({ message: `Course created successfully courseId: ${randomId}` });
+    })
+    .catch((err) => {
+      res.send("Course creation failed");
+    });
 });
 
 // logic to get a particular course
 app.get("/admin/courses/:courseId", jwtAuthenticate, (req, res) => {
   const courId = req.params.courseId;
-  const courseObj = COURSES.find((val) => val.id == courId);
-  res.json(courseObj);
+  Course.findOne({ id: courId }).then((course) => {
+    if (course) {
+      res.send(course);
+    } else res.status(404).send("course Not Found");
+  });
 });
 
 app.get("/admin/list", (req, res) => {
-  res.json(ADMINS);
+  Admin.find({}).then((admin) => {
+    if (admin) {
+      res.send(admin);
+    } else {
+      res.send("Admin not present");
+    }
+  });
 });
 
 app.put("/admin/courses/:courseId", jwtAuthenticate, (req, res) => {
   // logic to edit a course
   const courId = req.params.courseId;
   const courseObj = req.body;
-  const courseInd = COURSES.findIndex((val) => val.id == courId);
-  console.log(courseInd);
-  if (courseInd != -1) {
-    courseObj.id = courId;
-    Object.assign(COURSES[courseInd], courseObj);
-    console.log(COURSES[courseInd]);
-    res
-      .status(200)
-      .send({ message: `course updated successfully with id ${courId}` });
-  } else {
-    res.status(400).send(`Course Index Not Matched`);
-  }
+  Course.findOne({ id: courId }).then((course) => {
+    console.log(course);
+    Object.assign(course, courseObj);
+    course
+      .save()
+      .then((course) => {
+        res
+          .status(200)
+          .send({ message: `course updated successfully with id ${courId}` });
+      })
+      .catch((err) => {
+        res.status(404).send("course updation failed");
+      });
+  });
 });
 
 app.get("/admin/courses", jwtAuthenticate, (req, res) => {
   // logic to get all courses
-  res.json(COURSES);
+  Course.find({}).then((course) => {
+    if (course) res.send(course);
+    else res.status(404).send("Course Not present");
+  });
 });
 
 // User routes start here
