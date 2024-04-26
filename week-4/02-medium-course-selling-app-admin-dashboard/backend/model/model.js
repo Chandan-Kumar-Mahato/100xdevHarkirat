@@ -1,9 +1,15 @@
 const mongoose = require("mongoose");
-const {Schema} = mongoose;
+const { Schema } = mongoose;
 const userSchema = new Schema({
   username: { type: String },
   password: String,
-  purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
+  purchasedCourses: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      purchaseDate: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 const adminSchema = new Schema({
@@ -16,7 +22,8 @@ const courseSchema = new Schema({
   price: Number,
   published: Boolean,
   Tutor: String,
-  id: { type:Number ,  unique:true},
+  imagePath:String,
+  id: { type: Number, unique: true },
 });
 // lets create a mongoose model
 const Admin = mongoose.model("Admin", adminSchema);

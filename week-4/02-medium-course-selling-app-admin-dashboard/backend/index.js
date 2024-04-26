@@ -1,14 +1,24 @@
 const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+  destination:function(req,file, cb){
+    cb(null , '/uploads')
+  },
+  filename:function(req,file, cb){
+    cb(null , `${Date.now()}-${file.originalname}`);
+  }
+})
+
+const upload = multer({storage:storage});
 const cors = require("cors");
 
 const { connectDB } = require("./model/dbConn");
 const { Admin, User, Course } = require("./model/model");
 
-const ADMINS = [];
-const USERS = [];
-const COURSES = [];
+
 
 connectDB();
 app.use(cors());
@@ -56,6 +66,7 @@ function adminAuthentication(req, res, next) {
       if (admin) {
         const jwtTok = generateToken(adminLoginObj);
         req.token = jwtTok;
+        req.userName = username;
         next();
       } else {
         res.status(401).send("Unauthorized Admin");
@@ -96,15 +107,18 @@ function jwtUserAuthenticate(req, res, next) {
       if (err) {
         res.status(401).send({ message: `Token Auth Failed` });
       } else {
-        const checkInd = USERS.findIndex(
-          (val) =>
-            val.username == mssg.username && val.password == mssg.password
-        );
-        if (checkInd != -1) {
-          // this is the index of the particular user in the user array
-          req.userInd = checkInd;
-          next();
-        }
+        User.findOne({ username: mssg.username, password: mssg.password })
+          .then((user) => {
+            if (user) {
+              req.user = mssg.username;
+              next();
+            } else {
+              res.send("User Not found");
+            }
+          })
+          .catch((err) => {
+            res.send(err);
+          });
       }
     });
   } else {
@@ -125,6 +139,7 @@ app.post("/admin/courses", jwtAuthenticate, (req, res) => {
   // logic to create a course
   const randomId = Math.floor(Math.random() * 100);
   const courseObj = req.body;
+  console.log(courseObj);
   courseObj.id = randomId;
   Course.create(courseObj)
     .then((course) => {
@@ -191,37 +206,35 @@ app.get("/admin/courses", jwtAuthenticate, (req, res) => {
 app.post("/users/signup", (req, res) => {
   // logic to sign up user
   const obj = req.body;
-  obj.purchaseCourse = [];
-  const findInd = USERS.findIndex(
-    (val) => val.username == obj.username && val.password == obj.password
+  console.log(obj);
+  User.findOne({ username: obj.username, password: obj.password }).then(
+    (user) => {
+      if (user) res.send("user already present");
+      else {
+        User.create(obj).then((user) => {
+          if (user) {
+            const tok = generateToken(obj);
+            res.send({ message: "user Created successfully", token: tok });
+          } else res.send(`Error while creating the user`);
+        });
+      }
+    }
   );
-  if (findInd == -1) {
-    USERS.push(obj);
-    const tok = generateToken(obj);
-    res.send({ message: "user Created successfully", token: tok });
-  } else {
-    res.send(`User already crated by that name!!`);
-  }
 });
 
 function userAuthentication(req, res, next) {
-  const userObj = {
-    username: req.headers.username,
-    password: req.headers.password,
-  };
-
-  const findInd = USERS.findIndex(
-    (val) =>
-      val.username == userObj.username && val.password == userObj.password
-  );
-  if (findInd != -1) {
-    const tok = generateToken(userObj);
-    req.token = tok;
-    next();
-  } else {
-    res.send(`User from that username Not exist`);
-  }
+  const { username, password } = req.headers;
+  User.findOne({ username, password }).then((user) => {
+    if (user) {
+      const tok = generateToken({ username, password });
+      req.token = tok;
+      next();
+    } else {
+      res.send(`User from that username Not exist`);
+    }
+  });
 }
+
 app.post("/users/login", userAuthentication, (req, res) => {
   // logic to log in user
   res
@@ -229,39 +242,69 @@ app.post("/users/login", userAuthentication, (req, res) => {
     .send({ message: `user loged in successfully `, token: req.token });
 });
 
+// logic to list all user
 app.get("/users/list", (req, res) => {
-  res.json(USERS);
+  User.find({})
+    .then((user) => {
+      if (user) res.send(user);
+      else res.send("please create a user!!");
+    })
+    .catch((err) => {
+      res.send(err);
+    });
 });
+// this must list all the course that are published as true
 app.get("/users/courses", jwtUserAuthenticate, (req, res) => {
-  // logic to list all courses
-  const publishedTrueCourses = [];
-  COURSES.filter((val) => {
-    if (val.published == true) {
-      publishedTrueCourses.push(val);
+  Course.find({ published: true })
+    .then((course) => {
+      if (course) {
+        res.send(course);
+      } else {
+        res.send(`You dont have any course to buy Yet`);
+      }
+    })
+    .catch((err) => {
+      res.send(err);
+    });
+});
+
+// logic to purchase a course
+// this will purchase the particular course with the course id
+app.post("/users/courses/:courseId", jwtUserAuthenticate, (req, res) => {
+  // my first step should be finding the particular user in the users array
+  const { courseId } = req.params;
+  User.findOne({ username: req.user }).then((user) => {
+    if (user) {
+      Course.findOne({ id: courseId })
+        .then((course) => {
+          if (course) {
+            user.purchasedCourses.push(course._id);
+            user
+              .save()
+              .then(() =>
+                res.json({ message: "course purchased successfully" })
+              )
+              .catch((err) => res.send(err));
+          }
+        })
+        .catch((err) => res.send(err));
     }
   });
-  res.json(publishedTrueCourses);
-
-  // this must list all the course that are published as true
 });
 
-app.post("/users/courses/:courseId", jwtUserAuthenticate, (req, res) => {
-  // logic to purchase a course
-  // my first step should be finding the particular user in the users array
-  const courId = req.params.courseId;
-  const purCour = COURSES.find((val) => val.id == courId);
-  const userind = req.userInd;
-  USERS[userind].purchaseCourse.push(purCour);
-  res.json({ message: "course purchased successfully" });
-  // this will purchase the particular course with the course id
-});
-
+// logic to view purchased courses
+// this will list all the courses that are being puchased
 app.get("/users/purchasedCourses", jwtUserAuthenticate, (req, res) => {
-  // logic to view purchased courses
-  const userind = req.userInd;
-  res.json(USERS[userind].purchaseCourse);
-
-  // this will list all the courses that are being puchased
+  User.findOne({ username: req.user })
+    .populate("purchasedCourses")
+    .then((user) => {
+      if (user) {
+        res.send(user.purchasedCourses);
+      } else {
+        res.send("user Not found");
+      }
+    })
+    .catch((err) => res.send(err));
 });
 
 app.listen(3000, () => {
