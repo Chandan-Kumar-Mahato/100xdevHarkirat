@@ -11,7 +11,7 @@ function Register() {
   const [password, setPassword] = useState("");
 
   return (
-    <div className="w-4/5 mx-auto flex flex-col p-7 items-center">
+    <div className="w-1/2 mx-auto flex flex-col p-7 border mt-10 items-center">
       <h1 className="text-2xl sm:text-3xl font-bold">
         Welcome to Course Selling
       </h1>
@@ -19,7 +19,7 @@ function Register() {
       <input
         className="outline-none border p-2 w-1/2  my-4"
         type="email"
-        placeholder="Enter email"
+        placeholder="Enter Username that suits you"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
@@ -31,7 +31,7 @@ function Register() {
         onChange={(e) => setPassword(e.target.value)}
       />
       <button
-        className="bg-blue-500 text-white p-2 rounded-lg w-1/3 sm:w-1/4"
+        className="bg-green-500 text-white p-2 rounded-lg w-[100px] "
         onClick={() => {
           axios
             .post("http://localhost:3000/admin/signup", {
@@ -50,7 +50,7 @@ function Register() {
             });
         }}
       >
-        Signup
+        Register
       </button>
     </div>
   );

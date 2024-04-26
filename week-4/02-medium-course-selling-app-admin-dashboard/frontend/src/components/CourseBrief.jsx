@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 function CourseBrief() {
   const { courseId } = useParams();
   const [course, setCourse] = useState({});
-
   return (
     <div className="w-4/5 p-10 gap-4 flex flex-col  items-center border mx-auto">
       <CourseDetail courseId={courseId} setCourse={setCourse} course={course}/>
@@ -29,19 +28,27 @@ function CourseDetail({ courseId , setCourse , course }) {
   }, []);
   return (
     <div className="w-1/2 flex flex-col items-center p-3 border">
-      <img src={`${course.imageLink}`} alt="This is the course image" />
-      <h1 className="text-xl font-bold">{course.title}</h1>
+      <img src={`${course.imagePath}`} alt="This is the course image" />
+      <h1 className="text-xl font-bold">{course.name}</h1>
       <p className="text-md">Price:{course.price}</p>
-      <p className="text-md">Tutor:{course.tutor} </p>
+      <p className="text-md">Tutor:{course.Tutor} </p>
     </div>
   );
 }
 
 function CourseUpdate({ courseId  , course , setCourse}) {
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [tutor, setTutor] = useState("");
-  const [imageLink, setImageLink] = useState("");
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('' );
+  const [tutor, setTutor] = useState('');
+  const [imageLink, setImageLink] = useState('');
+
+
+  useEffect(() => {
+    setTitle(course.name || '');
+    setPrice(course.price || '');
+    setTutor(course.Tutor || '');
+    setImageLink(course.imagePath || '');
+  }, [course]);
 
   return (
     <div className="flex flex-col items-center w-1/2 border">
@@ -85,10 +92,10 @@ function CourseUpdate({ courseId  , course , setCourse}) {
               authorization: "Bearer " + localStorage.getItem("token"),
             },
             body: JSON.stringify({
-              title,
+              name:title,
               price,
-              tutor,
-              imageLink,
+              Tutor:tutor,
+              imagePath:imageLink,
             }),
           })
             .then((resp) => resp.json())

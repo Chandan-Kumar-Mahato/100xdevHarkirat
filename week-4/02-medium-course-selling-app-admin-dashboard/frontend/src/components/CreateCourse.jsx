@@ -1,5 +1,5 @@
 import React from "react";
-/// You need to add input boxes to take input for users to create a course.
+/// You need to add input boxes to take input e users to create a course.
 /// I've added one input so you understand the api to do it.
 import axios from "axios";
 import { useState } from "react";
@@ -38,10 +38,10 @@ function CreateCourse() {
         />
         <input
           type="text"
-          className="outline-none border p-2 w-1/2 my-2"
           value={imageLink}
-          onChange={(e) => setImageLink(e.target.value)}
-          placeholder="Enter course image link"
+          className="outline-none border p-2 w-1/2 my-2"
+          onChange={(e)=>setImageLink(e.target.value)}
+          placeholder="Enter the linke of the image "
         />
 
         <button
@@ -54,16 +54,17 @@ function CreateCourse() {
                 authorization: "Bearer " + localStorage.getItem("token"),
               },
               body: JSON.stringify({
-                title,
+                name:title,
                 price,
-                tutor,
-                imageLink
+                Tutor:tutor,
+                published:true,
+                imagePath:imageLink
               }),
             })
               .then((resp) => resp.json())
               .then((resp) => {
                 console.log(resp);
-                alert(`course created Successfully`)
+                alert('course created successfully')
               });
           }}
         >

@@ -15,6 +15,7 @@ function ShowCourses() {
     })
       .then((res) => res.json())
       .then((resp) => {
+        console.log(resp)
         setCourses(resp);
       });
   }, []);
@@ -25,11 +26,11 @@ function ShowCourses() {
       <div className="border m-2 p-2 w-1/4" key={val.id}>
         
         <Link to={`/courses/${val.id}`}>
-        <img src={`${val.imageLink}`} alt="This is the image" />
+        <img src={`${val.imagePath}`} alt="This is the image" />
         </Link>
-        <h1 className="text-xl font-bold">{val.title}</h1>
+        <h1 className="text-xl font-bold">{val.name}</h1>
         <p className="text-md">Price: {val.price}</p>
-        <p className="text-md">Tutor: {val.tutor}</p>
+        <p className="text-md">Tutor: {val.Tutor}</p>
 
 
       </div>
