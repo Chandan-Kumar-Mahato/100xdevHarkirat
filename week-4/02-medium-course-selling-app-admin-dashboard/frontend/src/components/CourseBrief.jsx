@@ -5,7 +5,7 @@ function CourseBrief() {
   const { courseId } = useParams();
   const [course, setCourse] = useState({});
   return (
-    <div className="w-4/5 p-10 gap-4 flex flex-col  items-center border mx-auto">
+    <div className="w-4/5 p-10 gap-4 flex   items-center border mx-auto">
       <CourseDetail courseId={courseId} setCourse={setCourse} course={course}/>
       <CourseUpdate courseId={courseId} setCourse={setCourse} course={course} />
     </div>
@@ -25,7 +25,7 @@ function CourseDetail({ courseId , setCourse , course }) {
       .then((resp) => {
         setCourse(resp);
       });
-  }, []);
+  }, [course.name , course.title , course.price , course.imageLink]);
   return (
     <div className="w-1/2 flex flex-col items-center p-3 border">
       <img src={`${course.imagePath}`} alt="This is the course image" />

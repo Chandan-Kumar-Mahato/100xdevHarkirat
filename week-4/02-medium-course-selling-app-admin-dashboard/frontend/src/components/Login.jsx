@@ -2,9 +2,12 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { userState } from "../store/atom/user";
+import { useSetRecoilState } from "recoil";
 
 /// File is incomplete. You need to add input boxes to take input for users to login.
 function Login() {
+  const setUser = useSetRecoilState(userState)
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -37,13 +40,15 @@ function Login() {
             .then((resp) => {
               console.log(resp.data);
               localStorage.setItem("token", resp.data.token);
-              localStorage.setItem("userName", resp.data.userName);
+              setUser({
+                isLoading:false,
+                userName:username
+              })
+              navigate('/')
               // if i am not doing this this will not update the window and changes will not seen imideatly
-              navigate('/');
-              window.location.reload();
             })
             .catch((err) => {
-              console.log(err.response.data);
+              console.log(err);
             });
         }}
       >

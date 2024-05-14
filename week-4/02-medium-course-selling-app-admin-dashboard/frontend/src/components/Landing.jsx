@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import React from "react";
 
+import { useRecoilValue } from "recoil";
+// i need to get the value from the selector --> this here is the selector and to get the value of the selector we use the useRecoilValue
+import { userNameState } from "../store/selector/isUserName";
 /// This is the landing page. You need to add a link to the login page here.
 /// Maybe also check from the backend if the user is already logged in and then show them a logout button
 /// Logging a user out is as simple as deleting the token from the local storage.
 function Landing() {
-  const username = localStorage.getItem("userName");
+  const username = useRecoilValue(userNameState);
   return (
     <div className="flex w-full bg-gray-200 h-[580px] ">
       <div className="left flex-1 items-center flex  ">
