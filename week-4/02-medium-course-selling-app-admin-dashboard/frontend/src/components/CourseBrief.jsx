@@ -4,11 +4,17 @@ import { useState, useEffect } from "react";
 function CourseBrief() {
   const { courseId } = useParams();
   const [course, setCourse] = useState({});
+
+  let token;
+  useEffect(()=>{
+     token = localStorage.getItem("token");
+  },[])
+
   return (
-    <div className="w-4/5 p-10 gap-4 flex   items-center border mx-auto">
+     <div className="w-4/5 p-10 gap-4 flex   items-center border mx-auto">
       <CourseDetail courseId={courseId} setCourse={setCourse} course={course}/>
       <CourseUpdate courseId={courseId} setCourse={setCourse} course={course} />
-    </div>
+    </div> 
   );
 }
 
